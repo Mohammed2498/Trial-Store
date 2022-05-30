@@ -1,13 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
-    <title>Edit Category</title>
-</head>
-<body>
-
-</body>
-</html>
+@extends('layout.app')
+@section('page_title', 'Edit Category')
+@section('content')
+    <div class="mx-auto" style="width: 80%">
+        @method('PUT')
+        <h1>Edit Category</h1>
+        <form method="POST" action="{{ route('categories.update', $category->id) }}">
+            @csrf
+            @method('PUT')
+            @include('categories.partials.form')
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a href="/categories" class="btn btn-secondary">Back</a>
+        </form>
+    </div>
+@endsection('content')
