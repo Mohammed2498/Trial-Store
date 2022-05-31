@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -45,13 +46,12 @@ class ProductController extends Controller
     {
         //
         $request->validate($this->rules());
-
         $image = $request->file('image');
         $data = $request->all();
         if ($image->isValid()) {
 //           $imageName = $image->getClientOriginalName();
 //           $imageExt = $image->getClientOriginalExtension();
-//          $image->storeAs('products','mm.png','public');
+//           $image->storeAs('products','mm.png','public');
             $image_url = $image->store('products', 'public');
             $data['image'] = $image_url;
         }
@@ -68,7 +68,7 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        //
+
     }
 
     /**
@@ -77,9 +77,12 @@ class ProductController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Product $product)
     {
         //
+        $categories=Category::all();
+        //
+        return view('products.edit',['categories'=>$categories,'product'=>$product]);
     }
 
     /**
@@ -89,9 +92,23 @@ class ProductController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Product $product)
     {
         //
+        $request->validate($this->rules());
+        $data = $request->all();
+        $image = $request->file('image');
+        if ($image->hasFile()) {
+             $image_url = $image->store('products', 'public');
+             $data['image'] = $image_url;
+             Storage::disk('public')->delete($product->image);
+             }
+               //       $imageName = $image->getClientOriginalName();
+            //      $imageExt = $image->getClientOriginalExtension();
+            //       $image->storeAs('products','mm.png','public');
+             $product->update($data);
+             return redirect()->route('products.index')
+            ->with('success', 'Product Edited');
     }
 
     /**
@@ -100,9 +117,13 @@ class ProductController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Product $product)
     {
         //
+        $product->delete();
+        Storage::disk('public')->delete($product->image);
+        return redirect()->route('products.index')
+        ->with('success', 'Product Deleted');
     }
 
     protected function rules()
