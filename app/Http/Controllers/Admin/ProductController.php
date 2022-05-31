@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -28,6 +29,10 @@ class ProductController extends Controller
     public function create()
     {
         //
+        $categories = Category::all();
+        $product = new Product();
+        return view('products.create', ['categories' => $categories
+            , 'product' => $product]);
     }
 
     /**
@@ -39,6 +44,20 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         //
+        $request->validate($this->rules());
+
+        $image = $request->file('image');
+        $data = $request->all();
+        if ($image->isValid()) {
+//           $imageName = $image->getClientOriginalName();
+//           $imageExt = $image->getClientOriginalExtension();
+//          $image->storeAs('products','mm.png','public');
+            $image_url = $image->store('products', 'public');
+            $data['image'] = $image_url;
+        }
+        Product::create($data);
+        return redirect()->route('products.index')
+            ->with('success', 'Product Added');
     }
 
     /**
@@ -84,5 +103,18 @@ class ProductController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    protected function rules()
+    {
+        return [
+            'title' => ['required', 'max:200'],
+            'description' => ['required', 'string'],
+            'image' => 'nullable|mimes:jpg,bmp,png',
+            'category_id' => 'required|exists:categories,id',
+            'cost' => 'required|numeric',
+            'price' => 'required|numeric',
+            'sale_price' => 'nullable|numeric',
+        ];
     }
 }

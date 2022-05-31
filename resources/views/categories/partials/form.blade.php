@@ -8,8 +8,8 @@
 @enderror --}}
 <div class="mb-3">
     <label for="description">Category Description</label>
-    <input type="text" value="{{ old('description', $category->description ?? '') }}" class="form-control"
-        name="description" id="floatingTextarea2" style="height: 150px"></input>
+    <textarea type="text" value="{{ old('description', $category->description ?? '') }}" class="form-control"
+        name="description" id="floatingTextarea2" style="height: 150px"></textarea>
 </div>
 <div class="mb-3">
     <label for="image" class="form-label">Add Image</label>
@@ -26,4 +26,3 @@
         @endforeach
     </select>
 </div>
-
