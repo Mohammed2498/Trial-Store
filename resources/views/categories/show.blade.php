@@ -1,14 +1,34 @@
 @extends('layouts.app')
-@section('page_title', 'Add Product')
+@section('page_title')
+    <h4>{{ $category->name }}</h4>
+@endsection('page_title')
 @section('content')
-    <div class="row mt-4 mb-4">
-        <div class="col-12">
-            <a href="{{ route('products.create') }}" class="btn btn-primary"> Add Product</a>
+    @if ($category->children()->count() > 0)
+        <div class="card">
+            <div class="card-body">
+                <h5>Children Categories</h5>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($category->children as $child)
+                            <tr>
+                                <td>{{ $child->id }}</td>
+                                <td>{{ $child->name }}</td>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
+    @endif
     <x-flash.message />
     <div class="card">
         <div class="card-body">
+            <h5>Products</h5>
             <table class="table">
                 <thead>
                     <tr>
@@ -19,7 +39,6 @@
                         <th>Sale Price</th>
                         <th>Quantity</th>
                         <th>Image</th>
-                        <th>Category</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -35,7 +54,6 @@
                             <td>
                                 <img src="{{ asset('storage/' . $product->image) }}" width="130" alt="">
                             </td>
-                            <td> {{ $product->category->name }}</td>
                             <td>
                                 <a href="{{ route('products.edit', $product->id) }}" class="btn btn-primary">Edit</a>
                                 <form action="{{ route('products.destroy', $product->id) }}" class="d-inline-block"

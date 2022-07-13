@@ -22,7 +22,7 @@ return new class extends Migration
             $table->unsignedInteger('quantity')->default(0);
             $table->unsignedBigInteger('category_id');
             $table->foreign('category_id')->references('id')->on('categories')
-            ->cascadeOnDelete();
+                ->cascadeOnDelete();
             $table->string('image')->nullable();
             $table->text('description');
             $table->timestamps();

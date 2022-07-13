@@ -1,10 +1,10 @@
-@extends('layout.app')
+@extends('layouts.app')
 @section('page_title', 'Edit Category')
 @section('content')
     <div class="mx-auto" style="width: 80%">
         @method('PUT')
         <h1>Edit Category</h1>
-        <form method="POST" action="{{ route('categories.update', $category->id) }}">
+        < method="POST" action={{ route('categories.update',$category->id) }}">
             @csrf
             @method('PUT')
             @include('categories.partials.form')

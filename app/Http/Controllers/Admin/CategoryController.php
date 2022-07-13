@@ -9,20 +9,41 @@ use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $categories = Category::all();
-        return view('categories.index')->with('categories', $categories);
+        $parentCategories = Category::all();
+        $categories = Category::when($request->name, function ($query, $value) {
+            $query->where("name", "LIKE", "%$value%");
+        })->when($request->parent_id, function ($query, $value) {
+            $query->where('parent_id', $value);
+        })->with('parent', 'children')->paginate(10);
+        return view('categories.index', ['parentCategories' => $parentCategories, 'categories' => $categories]);
     }
+
+    public function show(Category $category)
+    {
+        //$category = Category::with('children', 'parent');
+        $products = $category->products;
+        return view(
+            'categories.show',
+            [
+                'category' => $category,
+                'products' => $products
+            ]
+        );
+    }
+
     public function create()
     {
         $categories = Category::all();
         $category = new Category();
-        return view('categories.create',
+        return view(
+            'categories.create',
             [
                 'category' => $category,
                 'categories' => $categories,
-            ]);
+            ]
+        );
     }
 
     public function store(Request $request)
@@ -37,7 +58,6 @@ class CategoryController extends Controller
         $request['slug'] = Str::slug($request->name);
         Category::create($request->all());
         return redirect()->route('categories.index')->with('success', 'Category Added');
-
     }
     public function edit($id)
     {
@@ -65,10 +85,8 @@ class CategoryController extends Controller
     protected function rules()
     {
         return [
-            'name'=>['required','min:2'],
-            'description'=>['required']
+            'name' => ['required', 'min:2'],
+            'description' => ['required']
         ];
-
     }
-
 }

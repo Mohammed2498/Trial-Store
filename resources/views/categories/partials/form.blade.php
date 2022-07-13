@@ -12,17 +12,12 @@
         name="description" id="floatingTextarea2" style="height: 150px"></textarea>
 </div>
 <div class="mb-3">
-    <label for="image" class="form-label">Add Image</label>
-    <input value="{{ old('image', $category->image ?? '') }}" type="file" name="image" class="form-control"
-        id="exampleInputPassword1">
-</div>
-<div class="mb-3">
     <label for="parent_id" class="form-label"> Parent</label>
-    <select class="form-select" aria-label="Default select example" name="parent_id">
+    <select class="form-control" aria-label="Default select example" name="parent_id">
         <option value="">Select Category</option>
-        @foreach ($categories as $parent)
-            <option value="{{ $parent->id }}" @if ($category->parent_id == $parent->id) selected @endif>
-                {{ $parent->name }}</option>
+        @foreach ($categories as $item)
+            <option value="{{ $item->id }}"{{ $category->parent_id == $item->id }}>
+                {{ $item->name }}</option>
         @endforeach
     </select>
 </div>

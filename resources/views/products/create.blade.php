@@ -1,4 +1,4 @@
-@extends('layout.app')
+@extends('layouts.app')
 @section('page_title', 'Create Product')
 @section('content')
     @if ($errors->any())

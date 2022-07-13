@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Tag;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -18,8 +21,11 @@ class ProductController extends Controller
     public function index()
     {
         //
-        $products = Product::all();
-        return view('products.index')->with('products', $products);
+        $products = Product::with('category')->get();
+        return view(
+            'products.index',
+            ['products' => $products]
+        );
     }
 
     /**
@@ -32,8 +38,12 @@ class ProductController extends Controller
         //
         $categories = Category::all();
         $product = new Product();
-        return view('products.create', ['categories' => $categories
-            , 'product' => $product]);
+        $tags = Tag::all();
+        return view('products.create', [
+            'categories' => $categories,
+            'product' => $product,
+            'tags' => $tags
+        ]);
     }
 
     /**
@@ -48,14 +58,47 @@ class ProductController extends Controller
         $request->validate($this->rules());
         $image = $request->file('image');
         $data = $request->all();
-        if ($image->isValid()) {
-//           $imageName = $image->getClientOriginalName();
-//           $imageExt = $image->getClientOriginalExtension();
-//           $image->storeAs('products','mm.png','public');
+        if ($request->hasFile('image')) {
+            //           $imageName = $image->getClientOriginalName();
+            //           $imageExt = $image->getClientOriginalExtension();
+            //           $image->storeAs('products','mm.png','public');
             $image_url = $image->store('products', 'public');
             $data['image'] = $image_url;
         }
-        Product::create($data);
+        $product = Product::create($data);
+
+
+        //multiple images
+        $images = $request->file('images');
+        foreach ($images as $image) {
+            if ($image->isValid()) {
+                $imageUrl = $image->store('products', 'public');
+                $product->images()->create([
+                    'path_image' => $imageUrl
+                ]);
+            }
+        }
+
+
+
+        if ($request->tags) {
+            $tags = explode(',', $request->tags);
+            foreach ($tags as $item) {
+                $tag = Tag::where('name', $item)->first();
+                if (!$tag) {
+                    $tag = Tag::create([
+                        'name' => $item,
+                        'slug' => Str::slug($item)
+                    ]);
+                }
+                DB::table('product_tag')->insert(
+                    [
+                        'product_id' => $product->id,
+                        'tag_id' => $tag->id
+                    ]
+                );
+            }
+        }
         return redirect()->route('products.index')
             ->with('success', 'Product Added');
     }
@@ -68,7 +111,6 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-
     }
 
     /**
@@ -80,9 +122,17 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         //
-        $categories=Category::all();
-        //
-        return view('products.edit',['categories'=>$categories,'product'=>$product]);
+        $categories = Category::all();
+
+        $tags = Tag::all();
+        return view(
+            'products.edit',
+            [
+                'categories' => $categories,
+                'product' => $product,
+                'tags' => $tags
+            ]
+        );
     }
 
     /**
@@ -99,15 +149,15 @@ class ProductController extends Controller
         $data = $request->all();
         $image = $request->file('image');
         if ($image->hasFile()) {
-             $image_url = $image->store('products', 'public');
-             $data['image'] = $image_url;
-             Storage::disk('public')->delete($product->image);
-             }
-               //       $imageName = $image->getClientOriginalName();
-            //      $imageExt = $image->getClientOriginalExtension();
-            //       $image->storeAs('products','mm.png','public');
-             $product->update($data);
-             return redirect()->route('products.index')
+            $image_url = $image->store('products', 'public');
+            $data['image'] = $image_url;
+            Storage::disk('public')->delete($product->image);
+        }
+        //       $imageName = $image->getClientOriginalName();
+        //      $imageExt = $image->getClientOriginalExtension();
+        //       $image->storeAs('products','mm.png','public');
+        $product->update($data);
+        return redirect()->route('products.index')
             ->with('success', 'Product Edited');
     }
 
@@ -120,10 +170,14 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         //
+        if ($product->image) {
+            Storage::disk('public')->delete($product->image);
+        }
+
         $product->delete();
-        Storage::disk('public')->delete($product->image);
+
         return redirect()->route('products.index')
-        ->with('success', 'Product Deleted');
+            ->with('success', 'Product Deleted');
     }
 
     protected function rules()
