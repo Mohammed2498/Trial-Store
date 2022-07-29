@@ -58,4 +58,4 @@ Route::group([
 ], function () {
     Route::resource('products', ProductController::class);
 });
-
+//
